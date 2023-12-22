@@ -7,9 +7,11 @@ public class Deck {
     private Card[] computerDeck = new Card[10];
     public Card[] playerHand = new Card[4];
     public Card[] computerHand = new Card[4];
+    public Card[] remainingCards = new Card[30];
     Random rd = new Random();
 
     private int numberOfCards;
+    private int lastIndexOfRemainingCards = -1;
     private Card[] cards;
 
     public Card[] getPlayerDeck() {
@@ -87,6 +89,14 @@ public class Deck {
     }
 
 
+    public Card giveACard() {
+        if (remainingCards==null){
+            return null;
+        }else{
+            return remainingCards[lastIndexOfRemainingCards--];
+        }
+    }
+
     public Card showACard(int num) { //This method shows us all the cards in the deck except special cards.
         return cards[num];
     }
@@ -94,6 +104,7 @@ public class Deck {
     public int getNumberOfCards() {
         return numberOfCards;
     }
+
 
     public void shuffle() { //This method allows the cards in the deck to be shuffled.
         int i;
@@ -110,8 +121,15 @@ public class Deck {
 
         for (int i = 0; i < 5; i++) {
             computerDeck[i] = cards[i];
+            cards[i] = null;
             playerDeck[i] = cards[cards.length - i - 1];
+            cards[cards.length-i-1]= null;
         }
+        for (int i =5;i<=cards.length-6;i++){
+            remainingCards[i-5]= cards[i];
+            lastIndexOfRemainingCards ++;
+        }
+        cards = null;
         addSpecialCards();
 
         int[] arrayForPlayerNumber = new int[4];
