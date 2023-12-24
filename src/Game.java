@@ -14,6 +14,11 @@ public class Game {
     private int computersWin = 0;
     private boolean isPlayerStaying = false;
     private boolean isComputerStaying = false;
+    private GameHistory gameHistory;
+
+    public Game() {
+        this.gameHistory = new GameHistory();
+    }
 
     public void startGame() {
         for (int round = 1; round <= 3; round++) {
@@ -24,7 +29,7 @@ public class Game {
                 if (isPlayerStaying && !isComputerStaying) {
                     play(false);
                 } else if (isPlayerStaying && isComputerStaying) {
-                    determineSetWinner();
+
                     break;
                 } else if (!isPlayerStaying && isComputerStaying) {
                     play(true);
@@ -33,9 +38,15 @@ public class Game {
                     play(false);
                 }
             }
+            determineSetWinner();
         }
+
         determineGameWinner();
+        gameHistory.addGame(playersWin, computersWin);
+        printGameScore();
+        gameHistory.printHistory();
     }
+
 
     public void play(boolean isPlayerTurn) {
         if (isPlayerTurn) {
@@ -148,8 +159,10 @@ public class Game {
     }
 
     private int makeComputerDecision() {
-        if (calculateHand(computerBoard) < 19) {
+        if (calculateHand(computerBoard) < 15) {
             return 1;
+        } else if (calculateHand(computerBoard) <= TARGET_SCORE && calculateHand(computerBoard) > calculateHand(playerBoard)) {
+            return 2;
         }
         return (Math.random() < 0.5) ? 1 : 2;
     }
@@ -221,12 +234,23 @@ public class Game {
         int playerScore = calculateHand(playerBoard);
         int computerScore = calculateHand(computerBoard);
 
-        if (isPlayerBusted()) {
+        if (isPlayerBusted() && !isComputerBusted()) {
             System.out.println("Player busts! Computer wins the set.");
             computersWin++;
-        } else if (isComputerBusted()) {
+        } else if (isComputerBusted() && !isPlayerBusted()) {
             System.out.println("Computer busts! Player wins the set.");
             playersWin++;
+        } else if (isComputerBusted() && isPlayerBusted()) {
+            if (playerScore == computerScore) {
+                System.out.println("Set is tied! No one wins.");
+            } else {
+                System.out.println("Set winner: " + (playerScore > computerScore ? "Player" : "Computer"));
+                if (playerScore > computerScore) {
+                    playersWin++;
+                } else {
+                    computersWin++;
+                }
+            }
         } else {
             if (playerScore == computerScore) {
                 System.out.println("Set is tied! No one wins.");
@@ -238,9 +262,10 @@ public class Game {
                     computersWin++;
                 }
             }
+            resetPlayerStatus();
         }
-        resetPlayerStatus();
     }
+
 
     private void determineGameWinner() {
         // Check if a player used all blue cards to get a score of 20
@@ -260,10 +285,11 @@ public class Game {
         }
     }
 
+
     private boolean isBluejack(Card[] board) {
         int blueCount = 0;
         for (Card card : board) {
-            if (card != null && card.getColor().equals("blue")) {
+            if (card != null && card.getColor().equals("\033[34mBlue\033[0m\n")) {
                 blueCount++;
             }
         }
@@ -284,5 +310,9 @@ public class Game {
         resetPlayerStatus();
         playerBoard = new Card[9];
         computerBoard = new Card[9];
+    }
+
+    private void printGameScore() {
+        System.out.println("Game History: " + gameHistory.toString());
     }
 }
